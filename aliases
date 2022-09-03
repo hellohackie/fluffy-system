@@ -1,0 +1,59 @@
+# functions
+function func_kpdns {
+    kubectl get pods --namespace=$1 --show-labels
+}
+
+# get running pods
+function func_kpdr {
+    kubectl get pods --field-selector status.phase=Running -o=name | cat -b
+}
+
+function func_kexecs {
+    kubectl exec $1 -- --stdin --tty -- /bin/bash
+}
+
+function func_kexecn {
+    podId=`kubectl get pods --field-selector status.phase=Running -o=name | sed -n "$1p"`
+    kubectl exec $podId -- --stdin --tty -- /bin/bash
+}
+
+function func_klg {
+    podId=$1
+    prefix="pod/"
+    pod=${podId#"$prefix"}
+    kubetail $pod
+}
+
+function func_klgsn {
+    podId=`kubectl get pods --field-selector status.phase=Running -o=name | sed -n "$1p"`
+    prefix="pod/"
+    pod=${podId#"$prefix"}
+    if [ -z "$pod" ]; then
+        echo "POD is destroyed. (︶︿︶)"
+    else
+        kubectl logs -f $pod
+    fi
+}
+
+# kubernetes context command
+alias ktx='kubectl ctx'
+alias kprod='ktx prod'
+alias kqa='ktx qa'
+alias kuat='ktx uat'
+
+# kubernetes namespace command
+alias kns='kubectl ns'
+
+# kubernetes list pods command
+alias kpd='kubectl get pods'
+alias kpdns="func_kpdns"
+alias kpdl="func_kpdr"
+
+# kubernetes login to specific pod command
+alias kexec='kubectl exec'
+alias kexecs="func_kexecs"
+alias kexecn="func_kexecn"
+
+# kubernetes logs command
+alias ktail="func_klg"
+alias ktailn="func_klgsn"
